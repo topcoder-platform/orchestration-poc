@@ -1,0 +1,86 @@
+
+service: challenge-orchestrator
+useDotenv: true
+
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: ${env:REGION}
+  lambdaHashingVersion: 20201221
+  apiGateway:
+    shouldStartNameWithService: true
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - "states:StartExecution"
+            - "lambda:InvokeFunction"
+          Resource: "*"
+
+plugins:
+  - serverless-step-functions
+  - serverless-offline
+
+custom:
+  dotenv:
+    file: true
+  stage: ${opt:stage, self:provider.stage}
+
+resources:
+  Resources:
+    StatesExecutionRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Principal:
+                Service:
+                  - !Sub states.amazonaws.com
+              Action: "sts:AssumeRole"
+        Path: "/"
+        Policies:
+          - PolicyName: StatesExecutionPolicy
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - "lambda:InvokeFunction"
+                  Resource: "*"
+
+functions:
+  submit:
+    handler: src/handler.submit
+    environment:
+      API_ENDPOINT: ${env:API_ENDPOINT}
+
+  startExec:
+    handler: src/handler.startExec
+    events:
+      - http:
+          path: /start
+          method: post
+          cors: true
+    environment:
+      STATE_MACHINE_ARN: !Ref SubmitMachine
+
+stepFunctions:
+  stateMachines:
+    submitMachine:
+      name: SubmitMachine
+      retain: true
+      definition:
+        Comment: "AWS StateMachine that call the Lambda function submit"
+        StartAt: CallSubmit
+        States:
+          CallSubmit:
+            Type: Task
+            Resource: !GetAtt [ submit, Arn ]
+            End: true
+      role: !GetAtt [ StatesExecutionRole, Arn ]
+  validate: true

@@ -1,0 +1,23 @@
+{
+  "name": "challenge-orchestrator",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "lint": "standard",
+    "lint:fix": "standard --fix",
+    "deploy": "serverless deploy",
+    "destroy": "serverless remove"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "serverless-bundle": "^4.2.2",
+    "serverless-offline": "^6.9.0",
+    "serverless-step-functions": "^2.29.0",
+    "standard": "^16.0.3"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.878.0",
+    "superagent": "^6.1.0"
+  }
+}
