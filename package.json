@@ -17,7 +17,7 @@
     "standard": "^16.0.3"
   },
   "dependencies": {
-    "aws-sdk": "^2.878.0",
+    "aws-sdk": "^2.1000.0",
     "superagent": "^6.1.0"
   }
 }
